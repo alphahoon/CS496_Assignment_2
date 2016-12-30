@@ -3,7 +3,10 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="action_settings">Settings</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="facebook_app_id">738419366312728</string>
+    <string name="fb_login_protocol_scheme">fb738419366312728</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_login_pop">LoginPop</string>
 </resources>
