@@ -13,7 +13,10 @@
   "author": "Jaehon Lee, Yeaseul Park",
   "license": "ISC",
   "dependencies": {
+    "beautify": "0.0.8",
+    "eslint": "^3.12.2",
     "express": "^4.14.0",
+    "jshint": "^2.9.4",
     "mongodb": "^2.2.16"
   }
 }
