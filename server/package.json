@@ -1,0 +1,19 @@
+{
+  "name": "cs496_assignment_2",
+  "version": "1.0.0",
+  "description": "Winter 2016 CS496 Assignment 2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com/alphahoon/CS496_Assignment_2.git"
+  },
+  "author": "Jaehon Lee, Yeaseul Park",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.14.0",
+    "mongodb": "^2.2.16"
+  }
+}
