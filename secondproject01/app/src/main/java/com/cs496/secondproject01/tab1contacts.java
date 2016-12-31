@@ -15,30 +15,40 @@ import android.view.ViewGroup;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.os.Bundle;
+import com.facebook.FacebookSdk;
 
 import com.cs496.secondproject01.dummy.DummyContent;
 import com.cs496.secondproject01.dummy.DummyContent.DummyItem;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.login.LoginManager;
+import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import static android.app.Activity.RESULT_OK;
 import static com.cs496.secondproject01.R.id.container;
 
 
 public class tab1contacts extends Fragment {
-    InputStream contacts;
+    JSONArray contactsjson;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab1contacts, container, false);
-
+        LoginManager.getInstance().logOut();
 /*
         FloatingActionButton fb = (FloatingActionButton) view.findViewById(R.id.fab);
         fb.setOnClickListener(new View.OnClickListener() {
@@ -61,23 +71,34 @@ public class tab1contacts extends Fragment {
         }
 
         //Facebook sdk에서 friends 받아오기
+
         try {
-            contacts = getActivity().getAssets().open("contacts.json");
+            InputStream contacts = getActivity().getAssets().open("contacts.json");
+            contactsjson = JSONgetContacts(contacts);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        JSONArray contactsjson = JSONparse(contacts);
+        //if (App.userFBinfo == null) { fetchContacts(); }
+        //fetchContacts();
+/*
+        try {
+            JSONObject friends = App.userFBinfo.getJSONObject("taggable_friends");
+            contactsjson = JSONgetContacts(friends);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+*/
 
         //Handle ListView
         ListView conList = (ListView) view.findViewById(R.id.contact_list);
-        ContactViewAdapter adapter = new ContactViewAdapter(getActivity(), R.layout.contact_item, contactsjson);
+        ContactViewAdapter adapter = new ContactViewAdapter(getActivity(),
+                R.layout.contact_item, contactsjson);
         conList.setAdapter(adapter);
         return view;
     }
 
-
-    JSONArray JSONparse (InputStream raw) {
+    JSONArray JSONgetContacts (InputStream raw) {
         String json = null;
         try {
             int size = raw.available();
@@ -97,6 +118,44 @@ public class tab1contacts extends Fragment {
             return null;
         }
     }
+
+    /*
+    JSONArray JSONgetContacts (JSONObject data) {
+        try {
+            JSONArray contactsjson = data.getJSONArray("data");
+            return contactsjson;
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }*/
+/*
+    void fetchContacts() {
+        new Thread() {
+            public void run() {
+                AccessToken mToken = AccessToken.getCurrentAccessToken();
+                GraphRequest request;
+                request = GraphRequest.newMeRequest(mToken,
+                        new GraphRequest.GraphJSONObjectCallback() {
+                            @Override
+                            public void onCompleted(final JSONObject user, GraphResponse response) {
+                                App.userFBinfo = user;
+                                if (response.getError() == null) {
+                                    getActivity().setResult(RESULT_OK);
+                                }
+                            }
+                        });
+                Bundle parameters = new Bundle();
+                parameters.putInt("limit", 500);
+                parameters.putString("fields", "id,name,email,taggable_friends");
+                request.setParameters(parameters);
+                request.executeAndWait();
+            }
+        }.start();
+    }
+    */
+
+
 
     public void onResume() {
         super.onResume();

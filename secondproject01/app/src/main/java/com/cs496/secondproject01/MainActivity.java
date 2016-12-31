@@ -12,6 +12,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.facebook.login.LoginManager;
+
 public class MainActivity extends AppCompatActivity {
 
     /**
@@ -34,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        LoginManager.getInstance().logOut();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
@@ -118,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     return "ALBUMS";
                 case 2:
-                    return "STARRED";
+                    return "RANKS";
             }
             return null;
         }

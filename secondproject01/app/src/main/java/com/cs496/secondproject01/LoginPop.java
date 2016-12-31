@@ -11,6 +11,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
@@ -26,6 +27,7 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import android.view.LayoutInflater;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import static com.cs496.secondproject01.R.id.container;
@@ -52,11 +54,13 @@ public class LoginPop extends Activity {
         loginButton.registerCallback(cbmanager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(final LoginResult loginResult) {
+
                 GraphRequest request;
                 mToken = loginResult.getAccessToken();
                 request = GraphRequest.newMeRequest(mToken, jsonObjectCallback);
                 Bundle parameters = new Bundle();
-                parameters.putString("fields", "id,name,email,gender,birthday,cover,friends");
+                parameters.putInt("limit", 500);
+                parameters.putString("fields", "id,name,email,taggable_friends");
                 request.setParameters(parameters);
                 request.executeAsync();
             }
@@ -87,9 +91,11 @@ public class LoginPop extends Activity {
         cbmanager.onActivityResult(requestCode, resultCode, data);
     }
 
-    GraphRequest.GraphJSONObjectCallback jsonObjectCallback = new GraphRequest.GraphJSONObjectCallback() {
+    GraphRequest.GraphJSONObjectCallback jsonObjectCallback =
+            new GraphRequest.GraphJSONObjectCallback() {
         @Override
         public void onCompleted(final JSONObject user, GraphResponse response) {
+            App.userFBinfo = user;
             if (response.getError() == null) {
                 setResult(RESULT_OK);
             }
