@@ -48,7 +48,7 @@ public class tab1contacts extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.tab1contacts, container, false);
-        LoginManager.getInstance().logOut();
+        //LoginManager.getInstance().logOut();
 /*
         FloatingActionButton fb = (FloatingActionButton) view.findViewById(R.id.fab);
         fb.setOnClickListener(new View.OnClickListener() {
