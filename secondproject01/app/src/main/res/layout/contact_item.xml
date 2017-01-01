@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="5sp"
+    android:paddingRight="7dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="62dp"
+        android:id="@+id/list_thumnail"
+        android:src="@drawable/default_profile" />
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:paddingLeft="8dp"
+        android:layout_weight="3">
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Yeaseul Park"
+            android:id="@+id/list_name"
+            android:textSize="15dp"
+            android:textColor="#000000"
+
+            android:gravity="center_vertical"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="010-8340-7877"
+            android:id="@+id/list_no"
+            android:textSize="10dp"
+            android:textColor="#666666"
+            android:layout_weight="1" />
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="yeaseul.parky@gmail.com"
+            android:id="@+id/list_email"
+            android:textSize="10dp"
+            android:textColor="#666666"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+
+</LinearLayout>
