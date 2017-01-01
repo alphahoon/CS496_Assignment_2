@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.facebook.FacebookSdk;
@@ -101,10 +102,41 @@ public class LoginPop extends Activity {
                         new GraphRequest.GraphJSONObjectCallback() {
                             @Override
                             public void onCompleted(final JSONObject user, GraphResponse response) {
-                                App.userFBinfo = user;
-                                JSONArray deviceContacts = getDeviceContacts();
-                                new sendJSON("http://52.78.200.87:3000",
-                                        user.toString(), "application/json").execute();
+                                JSONObject obj = new JSONObject();
+                                JSONObject result = new JSONObject();
+
+                                try {
+                                    // Create new Database for this user
+                                    obj.put("type", "NEW_USER");
+                                    obj.put("name", user.getString("name"));
+                                    obj.put("email", user.getString("email"));
+                                    //App.userFBinfo = user;
+                                    result = new sendJSON("http://52.78.200.87:3000",
+                                            obj.toString(), "application/json").execute().get();
+                                    App.db_user_id = result.getString("user_id");
+
+                                    // Send Device Contact
+                                    JSONArray deviceContacts = getDeviceContacts();
+                                    obj = new JSONObject();
+                                    obj.put("type", "ADD_CONTACTS");
+                                    obj.put("user_id", App.db_user_id);
+                                    obj.put("contacts", deviceContacts);
+                                    new sendJSON("http://52.78.200.87:3000",
+                                            obj.toString(), "application/json").execute();
+
+                                    // Send Facebook Contact
+                                    sendFBcontacts(user.getJSONObject("taggable_friends"));
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } catch (ExecutionException e) {
+                                    e.printStackTrace();
+                                }
+
+                                //JSONArray deviceContacts = getDeviceContacts();
+                                //new sendJSON("http://52.78.200.87:3000",
+                                //        user.toString(), "application/json").execute();
                                 if (response.getError() == null) {
                                     setResult(RESULT_OK);
                                 }
@@ -155,7 +187,7 @@ public class LoginPop extends Activity {
 
 
     // AsyncTask to send JSON to our MongoDB
-    private class sendJSON extends AsyncTask<Void, Void, Void> {
+    private class sendJSON extends AsyncTask<Void, Void, JSONObject> {
         String urlstr;
         String data;
         String contentType;
@@ -167,59 +199,116 @@ public class LoginPop extends Activity {
         }
 
         @Override
-        protected Void doInBackground(Void... params) {
+        protected JSONObject doInBackground(Void... params) {
             HttpURLConnection conn;
             OutputStream os;
             InputStream is;
             BufferedReader reader;
+            JSONObject json = new JSONObject();
 
             try {
                 URL url = new URL(urlstr);
                 conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Content-Type", contentType);
-                conn.setRequestProperty("Accept-Charset", "UTF-8");
-                conn.setRequestProperty("Content-Length", Integer.toString(data.getBytes().length));
-                conn.setDoOutput(true);
-                conn.setUseCaches(false);
                 conn.setDoInput(true);
-                //conn.connect();
 
-                os = new BufferedOutputStream(conn.getOutputStream());
-                os.write(data.getBytes());
-                os.flush();
-                os.close();
+                // If sending to our DB
+                if (urlstr.contains("52.78.200.87")) {
+                    conn.setDoOutput(true);
+                    conn.setUseCaches(false);
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", contentType);
+                    conn.setRequestProperty("Accept-Charset", "UTF-8");
+                    conn.setRequestProperty("Content-Length", Integer.toString(data.getBytes().length));
 
+                    os = new BufferedOutputStream(conn.getOutputStream());
+                    os.write(data.getBytes());
+                    os.flush();
+                    os.close();
+                }
+
+                int statusCode = conn.getResponseCode();
                 is = conn.getInputStream();
                 reader = new BufferedReader(new InputStreamReader(is));
                 String line;
                 StringBuffer response = new StringBuffer();
                 while ((line = reader.readLine()) != null) {
                     response.append(line);
-                    response.append('\r');
+                    response.append("\n");
                 }
                 reader.close();
                 App.response = response.toString();
-                //is.close();
+                json = new JSONObject(response.toString());
+
                 conn.disconnect();
+
+
             } catch (MalformedURLException ex) {
                 ex.printStackTrace();
+                return null;
             } catch (IOException ex) {
                 ex.printStackTrace();
+                return null;
             } catch (Exception ex) {
                 ex.printStackTrace();
+                return null;
             }
 
+            return json;
+        }
+/*
+        @Override
+        protected void onPostExecute(Void... params) {
+            super.onPostExecute();
+            JSONObject responsejson = new JSONObject(App.response);
 
-            return null;
+        }
+  */
+    }
+
+    public void sendFBcontacts (JSONObject tag_friend) {
+        try {
+            while (true) {
+                JSONObject obj = new JSONObject();
+                JSONArray contact_arr = new JSONArray();
+                obj.put("type", "ADD_CONTACTS");
+                obj.put("user_id", App.db_user_id);
+
+                JSONArray friends = tag_friend.getJSONArray("data");
+                for (int i = 0; i < friends.length(); i++) {
+                    JSONObject contact = new JSONObject();
+                    JSONObject person = friends.getJSONObject(i);
+                    contact.put("name", person.getString("name"));
+                    contact.put("pic",
+                            person.getJSONObject("picture").getJSONObject("data").getString("url"));
+                    contact_arr.put(contact);
+                }
+                obj.put("contacts", contact_arr);
+                JSONObject result = new sendJSON("http://52.78.200.87:3000",
+                        obj.toString(), "application/json").execute().get();
+                Log.v("Sent FB contacts", result.toString());
+
+                // If need to fetch more pages
+                if (tag_friend.getJSONObject("paging").has("next")) {
+                    String url = tag_friend.getJSONObject("paging").getString("next");
+                    tag_friend = new sendJSON(url, "", "").execute().get();
+                } else {break;}
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
 
     public JSONArray getDeviceContacts() {
 
-        requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, 1000);
-        requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, 1000);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, 1000);
+            requestPermissions(new String[]{Manifest.permission.CALL_PHONE}, 1000);
+        }
         Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
 
         String[] projection = new String[]{
@@ -270,7 +359,7 @@ public class LoginPop extends Activity {
         return contactlist;
     }
 
-
+/*
     // AsyncTask to get JSON from our MongoDB or Facebook Graph
     private class getJSON extends AsyncTask<Void, Void, JSONObject> {
         String urlstr;
@@ -329,7 +418,7 @@ public class LoginPop extends Activity {
                 return null;
             }
         }
-    }
+    }*/
 
 }
 

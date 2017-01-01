@@ -22,8 +22,9 @@ import android.database.Cursor;
 
 public class App extends Application {
     public static boolean firstAccess;
-    public static JSONObject userFBinfo;
+    //public static JSONObject userFBinfo;
     public static String response;
+    public static String db_user_id;
 
 
     @Override
