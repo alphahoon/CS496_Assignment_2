@@ -3,6 +3,7 @@ package com.cs496.secondproject01;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -34,19 +35,28 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.ExecutionException;
 
+import static android.R.attr.name;
 import static android.app.Activity.RESULT_OK;
 import static com.cs496.secondproject01.R.id.container;
 
 
 public class tab1contacts extends Fragment {
-    JSONArray contactsjson;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        JSONArray contactsjson = new JSONArray();
         View view = inflater.inflate(R.layout.tab1contacts, container, false);
         //LoginManager.getInstance().logOut();
 /*
@@ -70,25 +80,33 @@ public class tab1contacts extends Fragment {
             startActivity(popupIntent);
         }
 
-        //Facebook sdk에서 friends 받아오기
+        //Mongo DB에서 친구 가져오기
+        //JSONObject request = new JSONObject();
+        //JSONObject friends = new JSONObject();
 
+        try {
+            //request.put("type","GET_CONTACTS");
+            //request.put("user_id", App.db_user_id);
+            //friends = new sendJSON("http://52.78.200.87:3000",
+            //        request.toString(), "application/json").execute().get();
+
+            if (App.friends == null) {
+                contactsjson.put(new JSONObject("{\"name\" : \"Me\"}"));
+            } else {
+                contactsjson = App.friends;
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        /*
         try {
             InputStream contacts = getActivity().getAssets().open("contacts.json");
             contactsjson = JSONgetContacts(contacts);
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
 
-        //if (App.userFBinfo == null) { fetchContacts(); }
-        //fetchContacts();
-/*
-        try {
-            JSONObject friends = App.userFBinfo.getJSONObject("taggable_friends");
-            contactsjson = JSONgetContacts(friends);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-*/
 
         //Handle ListView
         ListView conList = (ListView) view.findViewById(R.id.contact_list);
@@ -119,41 +137,77 @@ public class tab1contacts extends Fragment {
         }
     }
 
-    /*
-    JSONArray JSONgetContacts (JSONObject data) {
-        try {
-            JSONArray contactsjson = data.getJSONArray("data");
-            return contactsjson;
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
+    // AsyncTask to communicate with Facebook or our MongoDB
+    private class sendJSON extends AsyncTask<Void, Void, JSONObject> {
+        String urlstr;
+        String data;
+        String contentType;
+
+        public sendJSON(String url, String data, String contentType) {
+            this.urlstr = url;
+            this.data = data;
+            this.contentType = contentType;
         }
-    }*/
-/*
-    void fetchContacts() {
-        new Thread() {
-            public void run() {
-                AccessToken mToken = AccessToken.getCurrentAccessToken();
-                GraphRequest request;
-                request = GraphRequest.newMeRequest(mToken,
-                        new GraphRequest.GraphJSONObjectCallback() {
-                            @Override
-                            public void onCompleted(final JSONObject user, GraphResponse response) {
-                                App.userFBinfo = user;
-                                if (response.getError() == null) {
-                                    getActivity().setResult(RESULT_OK);
-                                }
-                            }
-                        });
-                Bundle parameters = new Bundle();
-                parameters.putInt("limit", 500);
-                parameters.putString("fields", "id,name,email,taggable_friends");
-                request.setParameters(parameters);
-                request.executeAndWait();
+
+        @Override
+        protected JSONObject doInBackground(Void... params) {
+            HttpURLConnection conn;
+            OutputStream os;
+            InputStream is;
+            BufferedReader reader;
+            JSONObject json = new JSONObject();
+
+            try {
+                URL url = new URL(urlstr);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setDoInput(true);
+
+                // If sending to our DB
+                if (urlstr.contains("52.78.200.87")) {
+                    conn.setDoOutput(true);
+                    conn.setUseCaches(false);
+                    conn.setRequestMethod("POST");
+                    conn.setRequestProperty("Content-Type", contentType);
+                    conn.setRequestProperty("Accept-Charset", "UTF-8");
+                    conn.setRequestProperty("Content-Length", Integer.toString(data.getBytes().length));
+
+                    os = new BufferedOutputStream(conn.getOutputStream());
+                    os.write(data.getBytes());
+                    os.flush();
+                    os.close();
+                }
+
+                int statusCode = conn.getResponseCode();
+                is = conn.getInputStream();
+                reader = new BufferedReader(new InputStreamReader(is));
+                String line;
+                StringBuffer response = new StringBuffer();
+                while ((line = reader.readLine()) != null) {
+                    response.append(line);
+                    response.append("\n");
+                }
+                reader.close();
+                App.response = response.toString();
+                json = new JSONObject(response.toString());
+
+                conn.disconnect();
+
+
+            } catch (MalformedURLException ex) {
+                ex.printStackTrace();
+                return null;
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                return null;
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return null;
             }
-        }.start();
+
+            return json;
+        }
+
     }
-    */
 
 
 

@@ -13,8 +13,12 @@ import com.facebook.FacebookSdk;
 import com.facebook.appevents.AppEventsLogger;
 import com.facebook.login.LoginManager;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 import android.database.Cursor;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by q on 2016-12-30.
@@ -22,7 +26,7 @@ import android.database.Cursor;
 
 public class App extends Application {
     public static boolean firstAccess;
-    //public static JSONObject userFBinfo;
+    public static JSONArray friends;
     public static String response;
     public static String db_user_id;
 
@@ -32,6 +36,7 @@ public class App extends Application {
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
         LoginManager.getInstance().logOut();
+        StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
 
         super.onCreate();
         firstAccess = true;
@@ -46,6 +51,30 @@ public class App extends Application {
             editor.putBoolean("firstTime", true);
             editor.commit();
         }*/
+    }
+
+    public static String md5(final String s) {
+        try {
+            // Create MD5 Hash
+            MessageDigest digest = java.security.MessageDigest
+                    .getInstance("MD5");
+            digest.update(s.getBytes());
+            byte messageDigest[] = digest.digest();
+
+            // Create Hex String
+            StringBuffer hexString = new StringBuffer();
+            for (int i = 0; i < messageDigest.length; i++) {
+                String h = Integer.toHexString(0xFF & messageDigest[i]);
+                while (h.length() < 2)
+                    h = "0" + h;
+                hexString.append(h);
+            }
+            return hexString.toString();
+
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 
 
