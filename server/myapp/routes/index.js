@@ -14,6 +14,8 @@ router.post('/', function(req, res, next) {
   var db_users = db.get('users');
   var db_contacts = db.get('contacts');
   var db_images = db.get('images');
+  var db_albums = db.get('albums');
+  var db_stats = db.get('statistics');
   
   var message = '';
   console.log(json);
@@ -142,7 +144,6 @@ router.post('/', function(req, res, next) {
         var imageBuffer = decodeBase64Image(base64Data);
         var filetype = getImageContainer(base64Data);
         var filename = 'image_' + Date.now() + '.' + filetype;
-        console.log(filetype, filename);
         fs.writeFile(__dirname + '/../public/images/' + filename, imageBuffer.data, function(e, file){
           if (e) return next(e);
           var url = 'http://52.78.200.87:3000/static/images/' + filename;
@@ -187,9 +188,125 @@ router.post('/', function(req, res, next) {
       }); 
       break;
 
+    case "CREATE_ALBUM":
+      if (!json.user_id) {
+        res.json({result:'failed', description:'user_id must be provided'});
+        return;
+      }
+      if (!isValidId(json.user_id)) {
+        res.json({result:'failed', description:'invalid user_id format'});
+        return;
+      }
+      if (!json.album_name) {
+        res.json({result:'failed', description:'album_name must be provided'});
+        return;
+      }
+      if (!json.activity) {
+        res.json({result:'failed', description:'activity must be provided'});
+        return;
+      }
+      if (!json.activity.work    || (json.activity.work != '0'   && json.activity.work != '1')
+        || !json.activity.study  || (json.activity.study != '0'  && json.activity.study != '1')
+        || !json.activity.food   || (json.activity.food != '0'   && json.activity.food != '1')
+        || !json.activity.cafe   || (json.activity.cafe != '0'   && json.activity.cafe != '1')
+        || !json.activity.sports || (json.activity.sports != '0' && json.activity.sports != '1')
+        || !json.activity.game   || (json.activity.game != '0'   && json.activity.game != '1')
+        || !json.activity.travel || (json.activity.travel != '0' && json.activity.travel != '1')) {
+        res.json({result:'failed', description:'activity list is incomplete'});
+        return;
+      }
+      if (!json.friend_id_list) {
+        res.json({result:'failed', description:'friend_id_list must be provided'});
+        return;
+      }
+      if (!json.img_id_list) {
+        res.json({result:'failed', description:'img_id_list must be provided'});
+        return;
+      }
+      if (isEmptyObject(json.friend_id_list)) {
+        res.json({result:'failed', description:'friend_id_list is empty'});
+        return;
+      }
+      if (isEmptyObject(json.img_id_list)) {
+        res.json({result:'failed', description:'img_id_list is empty'});
+        return;
+      }
+      db_users.find({_id:json.user_id}, {}, function(e, users) {
+        if (e) return next(e);
+        if (isEmptyObject(users)) {
+          res.json({result:'failed', description:'user not registered'});
+          return;
+        }
+        var user = users[0];
+
+        // CHECK friend ids
+        db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
+          if (e) return next(e);
+          if (isEmptyObject(contacts)) {
+            res.json({result:'failed', description:'no contact group found'});
+            return;
+          }
+          var contacts = contacts[0].contacts;
+
+          var num_friends = json.friend_id_list.length;
+          var num_friends_match = 0;
+          for (var i in json.friend_id_list) {
+            for (var j in contacts) {
+              if (json.friend_id_list[i] == contacts[j].friend_id)
+                num_friends_match++;
+            }
+          }
+
+          var num_friends_unknown = num_friends - num_friends_match;
+          if (num_friends_unknown != 0) {
+            res.json({result:'failed', description:num_friends_unknown + ' friend_ids are unknown'});
+            return;
+          }
+
+          // CHECK img ids
+          db_images.find({user_id:user._id.toString()}, {}, function(e, images) {
+            if (e) return next(e);
+            if (isEmptyObject(images)) {
+              res.json({result:'failed', description:'image not found'});
+              return;
+            }
+            var num_imgs = json.img_id_list.length;
+            var num_imgs_match = 0;
+            for (var i in json.img_id_list) {
+              for (var j in images) {
+                if (json.img_id_list[i] == images[j]._id)
+                  num_imgs_match++;
+              }
+            }
+
+            var num_imgs_unknown = num_imgs - num_imgs_match;
+            if (num_imgs_unknown != 0) {
+              res.json({result:'failed', description:num_imgs_unknown + ' img_ids are unknown'});
+              return;
+            }
+
+            // INSERT to albums
+            db_albums.insert({user_id:user._id, album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
+              if (e) return next(e);
+              res.json({result:'success', description:'new album created', album_id: new_album._id});
+              return;
+            });
+          });
+        });
+      });
+      break;
+
+    case "GET_ALBUM":
+      break;
+
+    case "UPDATE_ALBUM":
+      break;
+
+    case "GET_STATS":
+      break;
+
     default:
       res.json({result:'failed', description:'unknown type'});
-      return;
       break;
   }
 });
