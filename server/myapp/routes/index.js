@@ -96,7 +96,8 @@ router.post('/', function(req, res, next) {
           if (isEmptyObject(contact)) {
             db_contacts.insert({user_id:user._id, name:user.name, email:user.email, contacts: json.contacts}, function(e, new_contact) {
                 if (e) return next(e);
-                res.json({result:'success', description:'new contact group created'});
+                var num = contact.contacts.length;
+                res.json({result:'success', description:'new contact group created', contacts_num:num});
                 return;
             });
           } else {
@@ -107,7 +108,9 @@ router.post('/', function(req, res, next) {
                contacts:contact.contacts.concat(json.contacts)},
               function(e, updated_contact) {
                 if (e) return next(e);
-                res.json({result:'success', description:'added contacts'});
+                console.log(contact);
+                var num = contact.contacts.length;
+                res.json({result:'success', description:'added contacts', contacts_num:num});
                 return;
             });
           }
