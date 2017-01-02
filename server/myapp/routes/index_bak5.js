@@ -56,9 +56,7 @@ router.post('/', function(req, res, next) {
           res.json({result:'failed', description:'user not registered'});
           return;
         }
-        var user = users[0];
-
-        db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+        db_contacts.find({user_id:users[0]._id}, {}, function(e, contacts) {
           if (e) return next(e);
           if (isEmptyObject(contacts)) {
             res.json({result:'failed', description:'no contact group found'});
@@ -97,23 +95,24 @@ router.post('/', function(req, res, next) {
         var user = users[0];
         db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
           if (e) return next(e);
-          if (isEmptyObject(contacts)) {
-            db_contacts.insert({user_id:user._id.toString(), name:user.name, email:user.email, contacts: json.contacts}, function(e, new_contact) {
+          if (isEmptyObject(contact)) {
+            db_contacts.insert({user_id:user._id, name:user.name, email:user.email, contacts: json.contacts}, function(e, new_contact) {
                 if (e) return next(e);
-                var num = new_contact.contacts.length;
+                var contact = contacts[0];
+                var num = contact.contacts.length;
                 res.json({result:'success', description:'new contact group created', contacts_num:num});
                 return;
             });
           } else {
             var contact = contacts[0];
-            db_contacts.update({user_id:user._id.toString()},
+            db_contacts.update({user_id:user._id},
               {user_id:contact.user_id,
                name:contact.name,
                email:contact.email,
                contacts:contact.contacts.concat(json.contacts)},
               function(e, updated_contact) {
                 if (e) return next(e);
-                db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+                db_contacts.find({user_id:contact.user_id}, {}, function(e, contacts) {
                   var contact = contacts[0];
                   var num = contact.contacts.length;
                   res.json({result:'success', description:'added contacts', contacts_num:num});
@@ -153,8 +152,7 @@ router.post('/', function(req, res, next) {
         fs.writeFile(filepath, imageBuffer.data, function(e, file){
           if (e) return next(e);
           var url = 'http://52.78.200.87:3000/static/images/' + filename;
-          db_images.insert({user_id:user._id.toString(), img_path:filepath, img_url:url}, function(e, image) {
-            if (e) return next(e);
+          db_images.insert({user_id:json.user_id, img_path:filepath, img_url:url}, function(e, image) {
             res.json({result:'success', img_id:image._id});
             return;
           });
@@ -182,7 +180,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_images.find({user_id:user._id.toString(), _id:json.img_id}, {}, function(e, images) {
+        db_images.find({user_id:json.user_id, _id:json.img_id}, {}, function(e, images) {
           if (e) return next(e);
           if (isEmptyObject(images)) {
             res.json({result:'failed', description:'image not found'});
@@ -215,33 +213,17 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_images.find({user_id:user._id.toString(), _id:json.img_id}, {}, function(e, images) {
+        db_images.find({user_id:json.user_id, _id:json.img_id}, {}, function(e, images) {
           if (e) return next(e);
           if (isEmptyObject(images)) {
             res.json({result:'failed', description:'image not found'});
             return;
           }
           var image = images[0];
-          var deleted_img_id = image._id
           fs.unlink(image.img_path, function(e, result) {
             if (e) return next(e);
             db_images.deleteOne({user_id:json.user_id, _id:json.img_id}, function(e, result) {
               if (e) return next(e);
-
-              // DELETE IMG FROM ALBUM
-              db_albums.find({user_id:user._id.toString()}, {}, function (e, albums) {
-                if (e) return next(e);
-                if (!isEmptyObject(albums)) {
-                  for (var i in albums) {
-                    for (var j in albums.img_id_list) {
-                      if (albums[i].img_id_list[j] == deleted_img_id) {
-                        albums[i].img_id_list.splice(j, 1);
-                      }
-                    }
-                  }
-                }
-              });
-
               res.json({result:'success', description:'deleted an image'});
               return;
             });
@@ -353,7 +335,7 @@ router.post('/', function(req, res, next) {
             }
 
             // INSERT to albums
-            db_albums.insert({user_id:user._id.toString(), album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
+            db_albums.insert({user_id:user._id, album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
               if (e) return next(e);
               // UPDATE statistics
               db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
@@ -371,27 +353,30 @@ router.post('/', function(req, res, next) {
                   };
                   var init_friends = [];
 
-                  db_stats.insert({user_id:user._id.toString(), activity:init_activity, friends:init_friends}, function(e, new_stat) {
+                  db_stats.insert({user_id:user._id, activity:init_activity, friends:init_friends}, function(e, new_stat) {
                       if (e) return next(e);
+                      var stat = new_stats[0];
 
                       // UPDATE activity values
-                      new_stat.activity.work = (Number(new_stat.activity.work) + Number(json.activity.work)).toString();
-                      new_stat.activity.study = (Number(new_stat.activity.study) + Number(json.activity.study)).toString();
-                      new_stat.activity.food = (Number(new_stat.activity.food) + Number(json.activity.food)).toString();
-                      new_stat.activity.cafe = (Number(new_stat.activity.cafe) + Number(json.activity.cafe)).toString();
-                      new_stat.activity.sports = (Number(new_stat.activity.sports) + Number(json.activity.sports)).toString();
-                      new_stat.activity.game = (Number(new_stat.activity.game) + Number(json.activity.game)).toString();
-                      new_stat.activity.travel = (Number(new_stat.activity.travel) + Number(json.activity.travel)).toString();
+                      stat.activity.work = (Number(stat.activity.work) + Number(json.activity.work)).toString();
+                      stat.activity.study = (Number(stat.activity.study) + Number(json.activity.study)).toString();
+                      stat.activity.food = (Number(stat.activity.food) + Number(json.activity.food)).toString();
+                      stat.activity.cafe = (Number(stat.activity.cafe) + Number(json.activity.cafe)).toString();
+                      stat.activity.sports = (Number(stat.activity.sports) + Number(json.activity.sports)).toString();
+                      stat.activity.game = (Number(stat.activity.game) + Number(json.activity.game)).toString();
+                      stat.activity.travel = (Number(stat.activity.travel) + Number(json.activity.travel)).toString();
 
-                      db_stats.update({user_id:user._id.toString()},
-                        {user_id:user._id.toString(),
-                          activity:new_stat.activity,
-                          friends:friends},
-                        function (e, updated_stat) {
-                          if (e) return next(e);
-                          res.json({result:'success', description:'created new album and new stats', album_id:new_album._id});
-                          return;
-                        });
+                      // UPDATE friends count
+                      for (var i in friends) {
+                        for (var j in stat.friends) {
+                          if (friends[i].friend_id == stat.friends[j].friend_id) {
+                            stat.friends[j].count = (Number(stat.friends[j].count) + Number(friends[i].count)).toString();
+                          }
+                        }
+                      }
+
+                      res.json({result:'success', description:'created new album and new stats'});
+                      return;
                   });
                 } else {
                   // UPDATE stats
@@ -407,28 +392,16 @@ router.post('/', function(req, res, next) {
                   stat.activity.travel = (Number(stat.activity.travel) + Number(json.activity.travel)).toString()
 
                   // UPDATE friends count
-                  var new_friends = []
                   for (var i in friends) {
-                    var flag_find = false;
                     for (var j in stat.friends) {
                       if (friends[i].friend_id == stat.friends[j].friend_id) {
-                        flag_find = true;
                         stat.friends[j].count = (Number(stat.friends[j].count) + Number(friends[i].count)).toString();
                       }
                     }
-                    if (!flag_find)
-                      new_friends = new_friends.concat(friends[i]);
                   }
 
-                  db_stats.update({user_id:user._id.toString()},
-                    {user_id:user._id.toString(),
-                      activity:stat.activity,
-                      friends:stat.friends.concat(new_friends)},
-                    function (e, updated_stat) {
-                      if (e) return next(e);
-                      res.json({result:'success', description:'created new album and updated stats', album_id:new_album._id});
-                      return;
-                    });
+                  res.json({result:'success', description:'updated album and stats'});
+                  return;
                 }
               });
             });
@@ -457,7 +430,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_albums.find({_id:json.album_id, user_id:user._id.toString()}, {}, function(e, albums) {
+        db_albums.find({user_id:json.user_id, _id:json.album_id}, {}, function(e, albums) {
           if (e) return next(e);
           if (isEmptyObject(albums)) {
             res.json({result:'failed', description:'album not found'});
@@ -465,7 +438,7 @@ router.post('/', function(req, res, next) {
           }
           var album = albums[0];
 
-          // translate friend list
+          // translate firend list
           db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
             if (e) return next(e);
             if (isEmptyObject(contacts)) {
@@ -474,12 +447,12 @@ router.post('/', function(req, res, next) {
             }
             var contacts = contacts[0].contacts;
 
-            var num_friends = album.friend_id_list.length;
+            var num_friends = json.friend_id_list.length;
             var num_friends_match = 0;
             var friend_list = [];
-            for (var i in album.friend_id_list) {
+            for (var i in json.friend_id_list) {
               for (var j in contacts) {
-                if (album.friend_id_list[i] == contacts[j].friend_id) {
+                if (json.friend_id_list[i] == contacts[j].friend_id) {
                   num_friends_match++;
                   friend_list = friend_list.concat(contacts[j]);
                 }
@@ -499,12 +472,12 @@ router.post('/', function(req, res, next) {
                 res.json({result:'failed', description:'image not found'});
                 return;
               }
-              var num_imgs = album.img_id_list.length;
+              var num_imgs = json.img_id_list.length;
               var num_imgs_match = 0;
               var img_url_list = [];
-              for (var i in album.img_id_list) {
+              for (var i in json.img_id_list) {
                 for (var j in images) {
-                  if (album.img_id_list[i] == images[j]._id) {
+                  if (json.img_id_list[i] == images[j]._id) {
                     num_imgs_match++;
                     img_url_list = img_url_list.concat(images[j].img_url);
                   }
@@ -583,15 +556,10 @@ router.post('/', function(req, res, next) {
 
           var num_friends = json.friend_id_list.length;
           var num_friends_match = 0;
-          var friends = [];
           for (var i in json.friend_id_list) {
             for (var j in contacts) {
-              if (json.friend_id_list[i] == contacts[j].friend_id) {
+              if (json.friend_id_list[i] == contacts[j].friend_id)
                 num_friends_match++;
-                var contact_obj = contacts[j];
-                contact_obj.count = 1;
-                friends = friends.concat(contact_obj);
-              }
             }
           }
 
@@ -631,26 +599,6 @@ router.post('/', function(req, res, next) {
                 return;
               }
               var album = albums[0];
-              var delta_work = (Number(json.activity.work) - Number(album.activity.work)).toString();
-              var delta_study = (Number(json.activity.study) - Number(album.activity.study)).toString();
-              var delta_food = (Number(json.activity.food) - Number(album.activity.food)).toString();
-              var delta_cafe = (Number(json.activity.cafe) - Number(album.activity.cafe)).toString();
-              var delta_sports = (Number(json.activity.sports) - Number(album.activity.sports)).toString();
-              var delta_game = (Number(json.activity.game) - Number(album.activity.game)).toString();
-              var delta_travel = (Number(json.activity.travel) - Number(album.activity.travel)).toString();
-
-              for (var i in friends) {
-                var flag_find = false;
-                for (var j in album.friend_id_list) {
-                  if (friends[i].friend_id == album.friend_id_list[j]) {
-                    flag_find = true;
-                    friends[i].count = "0";
-                  }
-                }
-                if (!flag_find)
-                  friends[i].count = "1";
-              }
-
               db_albums.update({_id:json.album_id},
                 {
                   user_id:album.user_id,
@@ -661,54 +609,8 @@ router.post('/', function(req, res, next) {
                 function (e, updated_album) {
                   if (e) return next(e);
                   // update statistics db
-                  db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
-                    if (e) return next(e);
-                    if (isEmptyObject(stats)) {
-                      res.json({result:'failed', description:'stats not found'})
-                      return;
-                    }
-                    var stat = stats[0];
-
-                    // UPDATE activity values
-                    stat.activity.work = (Number(stat.activity.work) + Number(delta_work)).toString();
-                    stat.activity.study = (Number(stat.activity.study) + Number(delta_study)).toString();
-                    stat.activity.food = (Number(stat.activity.food) + Number(delta_food)).toString();
-                    stat.activity.cafe = (Number(stat.activity.cafe) + Number(delta_cafe)).toString();
-                    stat.activity.sports = (Number(stat.activity.sports) + Number(delta_sports)).toString();
-                    stat.activity.game = (Number(stat.activity.game) + Number(delta_game)).toString();
-                    stat.activity.travel = (Number(stat.activity.travel) + Number(delta_travel)).toString();
-
-                    // UPDATE friends count
-                    for (var i in friends) {
-                      for (var j in stat.friends) {
-                        if (friends[i].friend_id == stat.friends[j].friend_id) {
-                          stat.friends[j].count = (Number(stat.friends[j].count) + Number(friends[i].count)).toString();
-                        }
-                      }
-                    }
-
-                    for (var i in stat.friends) {
-                      var flag_find = false;
-                      for (var j in friends) {
-                        if (stat.friends[i].friend_id == friends[j].friend_id) {
-                          flag_find = true;
-                        }
-                      }
-                      if (!flag_find) {
-                        stat.friends.splice(i, 1);
-                      }
-                    }
-
-                    db_stats.update({user_id:user._id.toString()},
-                      {user_id:stat.user_id,
-                        activity:stat.activity,
-                        friends:stat.friends},
-                      function(e, updated_stat) {
-                        if (e) return next(e);
-                        res.json({result:'success', description:'updated album and stats', album_id:album.user_id});
-                        return;
-                    });
-                  });
+                  res.json({result:'success', description:'updated album'});
+                  return;
               });
             });
           });
@@ -739,61 +641,14 @@ router.post('/', function(req, res, next) {
         db_albums.find({user_id:user._id.toString(), _id:json.album_id}, {}, function(e, albums) {
           if (e) return next(e);
           if (isEmptyObject(albums)) {
-            res.json({result:'failed', description:'albums not found'});
+            res.json({result:'failed', description:'image not found'});
             return;
           }
           var album = albums[0];
-
-          var dec_work = album.activity.work;
-          var dec_study = album.activity.study;
-          var dec_food = album.activity.food;
-          var dec_cafe = album.activity.cafe;
-          var dec_sports = album.activity.sports;
-          var dec_game = album.activity.game;
-          var dec_travel = album.activity.travel;
-          var dec_friend_id_list = album.activity.friend_id_list;
-
-          db_albums.remove({user_id:user._id.toString(), _id:json.album_id}, function(e, result) {
+          db_albums.deleteOne({user_id:json.user_id, _id:json.album_id}, function(e, result) {
             if (e) return next(e);
-            // UPDATE stats
-            db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
-              if (e) return next(e);
-              if (isEmptyObject(stats)) {
-                res.json({result:'failed', description:'stats not found'})
-                return;
-              }
-              var stat = stats[0];
-
-              // UPDATE activity values
-              stat.activity.work = (Number(stat.activity.work) - Number(dec_work)).toString();
-              stat.activity.study = (Number(stat.activity.study) - Number(dec_study)).toString();
-              stat.activity.food = (Number(stat.activity.food) - Number(dec_food)).toString();
-              stat.activity.cafe = (Number(stat.activity.cafe) - Number(dec_cafe)).toString();
-              stat.activity.sports = (Number(stat.activity.sports) - Number(dec_sports)).toString();
-              stat.activity.game = (Number(stat.activity.game) - Number(dec_game)).toString();
-              stat.activity.travel = (Number(stat.activity.travel) - Number(dec_travel)).toString();
-
-              // UPDATE friends count
-              for (var i in dec_friend_id_list) {
-                for (var j in stat.friends) {
-                  if (dec_friend_id_list[i] == stat.friends[j].friend_id) {
-                    stat.friends[j].count = (Number(stat.friends[j].count) - 1).toString();
-                      if (stat.friends[j].count == 0)
-                        stat.friends.splice(j, 1);
-                  }
-                }
-              }
-
-              db_stats.update({user_id:user._id.toString()},
-                {user_id:stat.user_id,
-                  activity:stat.activity,
-                  friends:stat.friends},
-                function(e, updated_stat) {
-                  if (e) return next(e);
-                  res.json({result:'success', description:'deleted an album'});
-                  return;
-              });
-            });
+            res.json({result:'success', description:'deleted an album'});
+            return;
           });
         });
       });

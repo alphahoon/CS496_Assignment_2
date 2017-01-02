@@ -56,9 +56,7 @@ router.post('/', function(req, res, next) {
           res.json({result:'failed', description:'user not registered'});
           return;
         }
-        var user = users[0];
-
-        db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+        db_contacts.find({user_id:users[0]._id}, {}, function(e, contacts) {
           if (e) return next(e);
           if (isEmptyObject(contacts)) {
             res.json({result:'failed', description:'no contact group found'});
@@ -95,10 +93,10 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+        db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
           if (e) return next(e);
           if (isEmptyObject(contacts)) {
-            db_contacts.insert({user_id:user._id.toString(), name:user.name, email:user.email, contacts: json.contacts}, function(e, new_contact) {
+            db_contacts.insert({user_id:user._id, name:user.name, email:user.email, contacts: json.contacts}, function(e, new_contact) {
                 if (e) return next(e);
                 var num = new_contact.contacts.length;
                 res.json({result:'success', description:'new contact group created', contacts_num:num});
@@ -106,14 +104,14 @@ router.post('/', function(req, res, next) {
             });
           } else {
             var contact = contacts[0];
-            db_contacts.update({user_id:user._id.toString()},
+            db_contacts.update({user_id:user._id},
               {user_id:contact.user_id,
                name:contact.name,
                email:contact.email,
                contacts:contact.contacts.concat(json.contacts)},
               function(e, updated_contact) {
                 if (e) return next(e);
-                db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+                db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
                   var contact = contacts[0];
                   var num = contact.contacts.length;
                   res.json({result:'success', description:'added contacts', contacts_num:num});
@@ -153,7 +151,7 @@ router.post('/', function(req, res, next) {
         fs.writeFile(filepath, imageBuffer.data, function(e, file){
           if (e) return next(e);
           var url = 'http://52.78.200.87:3000/static/images/' + filename;
-          db_images.insert({user_id:user._id.toString(), img_path:filepath, img_url:url}, function(e, image) {
+          db_images.insert({user_id:json.user_id, img_path:filepath, img_url:url}, function(e, image) {
             if (e) return next(e);
             res.json({result:'success', img_id:image._id});
             return;
@@ -182,7 +180,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_images.find({user_id:user._id.toString(), _id:json.img_id}, {}, function(e, images) {
+        db_images.find({user_id:json.user_id, _id:json.img_id}, {}, function(e, images) {
           if (e) return next(e);
           if (isEmptyObject(images)) {
             res.json({result:'failed', description:'image not found'});
@@ -215,7 +213,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_images.find({user_id:user._id.toString(), _id:json.img_id}, {}, function(e, images) {
+        db_images.find({user_id:json.user_id, _id:json.img_id}, {}, function(e, images) {
           if (e) return next(e);
           if (isEmptyObject(images)) {
             res.json({result:'failed', description:'image not found'});
@@ -229,7 +227,7 @@ router.post('/', function(req, res, next) {
               if (e) return next(e);
 
               // DELETE IMG FROM ALBUM
-              db_albums.find({user_id:user._id.toString()}, {}, function (e, albums) {
+              db_albums.find({user_id:json.user_id}, {}, function (e, albums) {
                 if (e) return next(e);
                 if (!isEmptyObject(albums)) {
                   for (var i in albums) {
@@ -302,7 +300,7 @@ router.post('/', function(req, res, next) {
         var user = users[0];
 
         // CHECK friend ids
-        db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+        db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
           if (e) return next(e);
           if (isEmptyObject(contacts)) {
             res.json({result:'failed', description:'no contact group found'});
@@ -331,7 +329,7 @@ router.post('/', function(req, res, next) {
           }
 
           // CHECK img ids
-          db_images.find({user_id:user._id.toString()}, {}, function(e, images) {
+          db_images.find({user_id:json.user_id}, {}, function(e, images) {
             if (e) return next(e);
             if (isEmptyObject(images)) {
               res.json({result:'failed', description:'image not found'});
@@ -353,10 +351,10 @@ router.post('/', function(req, res, next) {
             }
 
             // INSERT to albums
-            db_albums.insert({user_id:user._id.toString(), album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
+            db_albums.insert({user_id:user._id, album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
               if (e) return next(e);
               // UPDATE statistics
-              db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
+              db_stats.find({user_id:user._id}, {}, function(e, stats) {
                 if (e) return next(e);
                 if (isEmptyObject(stats)) {
                   // CREATE new stats
@@ -371,7 +369,7 @@ router.post('/', function(req, res, next) {
                   };
                   var init_friends = [];
 
-                  db_stats.insert({user_id:user._id.toString(), activity:init_activity, friends:init_friends}, function(e, new_stat) {
+                  db_stats.insert({user_id:user._id, activity:init_activity, friends:init_friends}, function(e, new_stat) {
                       if (e) return next(e);
 
                       // UPDATE activity values
@@ -383,8 +381,8 @@ router.post('/', function(req, res, next) {
                       new_stat.activity.game = (Number(new_stat.activity.game) + Number(json.activity.game)).toString();
                       new_stat.activity.travel = (Number(new_stat.activity.travel) + Number(json.activity.travel)).toString();
 
-                      db_stats.update({user_id:user._id.toString()},
-                        {user_id:user._id.toString(),
+                      db_stats.update({user_id:user._id},
+                        {user_id:user._id,
                           activity:new_stat.activity,
                           friends:friends},
                         function (e, updated_stat) {
@@ -420,8 +418,8 @@ router.post('/', function(req, res, next) {
                       new_friends = new_friends.concat(friends[i]);
                   }
 
-                  db_stats.update({user_id:user._id.toString()},
-                    {user_id:user._id.toString(),
+                  db_stats.update({user_id:user._id},
+                    {user_id:user._id,
                       activity:stat.activity,
                       friends:stat.friends.concat(new_friends)},
                     function (e, updated_stat) {
@@ -457,7 +455,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_albums.find({_id:json.album_id, user_id:user._id.toString()}, {}, function(e, albums) {
+        db_albums.find({_id:json.album_id, user_id:user._id}, {}, function(e, albums) {
           if (e) return next(e);
           if (isEmptyObject(albums)) {
             res.json({result:'failed', description:'album not found'});
@@ -466,7 +464,7 @@ router.post('/', function(req, res, next) {
           var album = albums[0];
 
           // translate friend list
-          db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+          db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
             if (e) return next(e);
             if (isEmptyObject(contacts)) {
               res.json({result:'failed', description:'no contact group found'});
@@ -477,7 +475,7 @@ router.post('/', function(req, res, next) {
             var num_friends = album.friend_id_list.length;
             var num_friends_match = 0;
             var friend_list = [];
-            for (var i in album.friend_id_list) {
+            for (var i in json.friend_id_list) {
               for (var j in contacts) {
                 if (album.friend_id_list[i] == contacts[j].friend_id) {
                   num_friends_match++;
@@ -493,7 +491,7 @@ router.post('/', function(req, res, next) {
             }
 
             // translate img list
-            db_images.find({user_id:user._id.toString()}, {}, function(e, images) {
+            db_images.find({user_id:user._id}, {}, function(e, images) {
               if (e) return next(e);
               if (isEmptyObject(images)) {
                 res.json({result:'failed', description:'image not found'});
@@ -573,7 +571,7 @@ router.post('/', function(req, res, next) {
         var user = users[0];
 
         // CHECK friend ids
-        db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
+        db_contacts.find({user_id:user._id}, {}, function(e, contacts) {
           if (e) return next(e);
           if (isEmptyObject(contacts)) {
             res.json({result:'failed', description:'no contact group found'});
@@ -602,7 +600,7 @@ router.post('/', function(req, res, next) {
           }
 
           // CHECK img ids
-          db_images.find({user_id:user._id.toString()}, {}, function(e, images) {
+          db_images.find({user_id:user._id}, {}, function(e, images) {
             if (e) return next(e);
             if (isEmptyObject(images)) {
               res.json({result:'failed', description:'image not found'});
@@ -624,7 +622,7 @@ router.post('/', function(req, res, next) {
             }
 
             // INSERT to albums
-            db_albums.find({_id:json.album_id, user_id:user._id.toString()}, {}, function(e, albums) {
+            db_albums.find({_id:json.album_id, user_id:user._id}, {}, function(e, albums) {
               if (e) return next(e);
               if (isEmptyObject(albums)) {
                 res.json({result:'failed', description:'album not found'});
@@ -661,7 +659,7 @@ router.post('/', function(req, res, next) {
                 function (e, updated_album) {
                   if (e) return next(e);
                   // update statistics db
-                  db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
+                  db_stats.find({user_id:user._id}, {}, function(e, stats) {
                     if (e) return next(e);
                     if (isEmptyObject(stats)) {
                       res.json({result:'failed', description:'stats not found'})
@@ -676,7 +674,7 @@ router.post('/', function(req, res, next) {
                     stat.activity.cafe = (Number(stat.activity.cafe) + Number(delta_cafe)).toString();
                     stat.activity.sports = (Number(stat.activity.sports) + Number(delta_sports)).toString();
                     stat.activity.game = (Number(stat.activity.game) + Number(delta_game)).toString();
-                    stat.activity.travel = (Number(stat.activity.travel) + Number(delta_travel)).toString();
+                    stat.activity.travel = (Number(stat.activity.travel) + Number(delta_travel)).toString()
 
                     // UPDATE friends count
                     for (var i in friends) {
@@ -698,16 +696,6 @@ router.post('/', function(req, res, next) {
                         stat.friends.splice(i, 1);
                       }
                     }
-
-                    db_stats.update({user_id:user._id.toString()},
-                      {user_id:stat.user_id,
-                        activity:stat.activity,
-                        friends:stat.friends},
-                      function(e, updated_stat) {
-                        if (e) return next(e);
-                        res.json({result:'success', description:'updated album and stats', album_id:album.user_id});
-                        return;
-                    });
                   });
               });
             });
@@ -736,10 +724,10 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_albums.find({user_id:user._id.toString(), _id:json.album_id}, {}, function(e, albums) {
+        db_albums.find({user_id:user._id, _id:json.album_id}, {}, function(e, albums) {
           if (e) return next(e);
           if (isEmptyObject(albums)) {
-            res.json({result:'failed', description:'albums not found'});
+            res.json({result:'failed', description:'image not found'});
             return;
           }
           var album = albums[0];
@@ -753,10 +741,10 @@ router.post('/', function(req, res, next) {
           var dec_travel = album.activity.travel;
           var dec_friend_id_list = album.activity.friend_id_list;
 
-          db_albums.remove({user_id:user._id.toString(), _id:json.album_id}, function(e, result) {
+          db_albums.deleteOne({user_id:json.user_id, _id:json.album_id}, function(e, result) {
             if (e) return next(e);
             // UPDATE stats
-            db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
+            db_stats.find({user_id:user._id}, {}, function(e, stats) {
               if (e) return next(e);
               if (isEmptyObject(stats)) {
                 res.json({result:'failed', description:'stats not found'})
@@ -771,7 +759,7 @@ router.post('/', function(req, res, next) {
               stat.activity.cafe = (Number(stat.activity.cafe) - Number(dec_cafe)).toString();
               stat.activity.sports = (Number(stat.activity.sports) - Number(dec_sports)).toString();
               stat.activity.game = (Number(stat.activity.game) - Number(dec_game)).toString();
-              stat.activity.travel = (Number(stat.activity.travel) - Number(dec_travel)).toString();
+              stat.activity.travel = (Number(stat.activity.travel) - Number(dec_travel)).toString()
 
               // UPDATE friends count
               for (var i in dec_friend_id_list) {
@@ -784,15 +772,8 @@ router.post('/', function(req, res, next) {
                 }
               }
 
-              db_stats.update({user_id:user._id.toString()},
-                {user_id:stat.user_id,
-                  activity:stat.activity,
-                  friends:stat.friends},
-                function(e, updated_stat) {
-                  if (e) return next(e);
-                  res.json({result:'success', description:'deleted an album'});
-                  return;
-              });
+              res.json({result:'success', description:'deleted an album'});
+              return;
             });
           });
         });
@@ -815,7 +796,7 @@ router.post('/', function(req, res, next) {
           return;
         }
         var user = users[0];
-        db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
+        db_stats.find({user_id:user._id}, {}, function(e, stats) {
           if (e) return next(e);
           if (isEmptyObject(stats)) {
             res.json({result:'failed', description:'stats not found'});
