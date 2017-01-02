@@ -353,7 +353,7 @@ router.post('/', function(req, res, next) {
             }
 
             // INSERT to albums
-            db_albums.insert({user_id:user._id.toString(), album_name:json.album_name, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
+            db_albums.insert({user_id:user._id.toString(), album_name:json.album_name, date:json.date, activity:json.activity, friend_id_list:json.friend_id_list, img_id_list:json.img_id_list}, function (e, new_album) {
               if (e) return next(e);
               // UPDATE statistics
               db_stats.find({user_id:user._id.toString()}, {}, function(e, stats) {
@@ -517,7 +517,7 @@ router.post('/', function(req, res, next) {
                 return;
               }
 
-              res.json({result:'success', album_name:album.album_name, activity:album.activity, friend_list:friend_list, img_url_list:img_url_list});
+              res.json({result:'success', album_name:album.album_name, date:album.date, activity:album.activity, friend_list:friend_list, img_url_list:img_url_list});
               return;              
             });
           });
