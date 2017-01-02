@@ -1,6 +1,7 @@
 package com.cs496.secondproject01;
 
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -37,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         LoginManager.getInstance().logOut();
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        //Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
         // Create the adapter that will return a fragment for each of the three
         // primary sections of the activity.
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -49,10 +50,17 @@ public class MainActivity extends AppCompatActivity {
         mViewPager.setCurrentItem(1, false);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        //tabLayout.setupWithViewPager(mViewPager);
+        //tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
+        //tabLayout.setTabGravity(TabLayout.GRAVITY_CENTER);
         tabLayout.setupWithViewPager(mViewPager);
-
-
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_friend);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_photos);
+        tabLayout.getTabAt(2).setIcon(R.drawable.ic_crown);
+        //tabLayout.
     }
+
+
 
 
     @Override
@@ -113,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
             // Show 3 total pages.
             return 3;
         }
-
+/*
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
@@ -126,5 +134,5 @@ public class MainActivity extends AppCompatActivity {
             }
             return null;
         }
-    }
+   */ }
 }

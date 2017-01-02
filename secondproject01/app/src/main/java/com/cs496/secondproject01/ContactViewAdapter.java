@@ -3,6 +3,7 @@ package com.cs496.secondproject01;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,6 +58,7 @@ public class ContactViewAdapter extends BaseAdapter {
 
         // 화면에 표시될 View(Layout이 inflate된)으로부터 위젯에 대한 참조 획득
         //ImageView thumnailView = (ImageView) convertView.findViewById(R.id.list_thumnail) ;
+
         TextView nameView = (TextView) convertView.findViewById(R.id.list_name) ;
         TextView noView = (TextView) convertView.findViewById(R.id.list_no);
         //TextView emailView = (TextView) convertView.findViewById(R.id.list_email);
@@ -69,15 +71,15 @@ public class ContactViewAdapter extends BaseAdapter {
             if (jObject.has("name")) { name = jObject.getString("name"); }
             if (jObject.has("mobile")) { number = jObject.getString("mobile"); }
             if (jObject.has("pic")) {
-                //URL url = new URL(jObject.getString("pic"));
-                //Bitmap bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
                 Bitmap bmp = new loadImage().execute(jObject.getString("pic")).get();
                 thumnailView.setImageBitmap(bmp);
-            }
+            } else {thumnailView.setImageResource(R.drawable.default_profile);}
             // 아이템 내 각 위젯에 데이터 반영
             //thumnailView.setImageDrawable(listViewItem.getIcon());
             nameView.setText(name);
+            nameView.setTypeface(App.myFont);
             noView.setText(number);
+            noView.setTypeface(App.myFont);
             //emailView.setText(email);
         } catch (JSONException e) {
             e.printStackTrace();

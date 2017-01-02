@@ -2,10 +2,12 @@ package com.cs496.secondproject01;
 
 import android.app.Application;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.AccessToken;
@@ -27,8 +29,10 @@ import java.security.NoSuchAlgorithmException;
 public class App extends Application {
     public static boolean firstAccess;
     public static JSONArray friends;
+    public static String[] names;
     public static String response;
     public static String db_user_id;
+    public static Typeface myFont;
 
 
     @Override
@@ -37,9 +41,10 @@ public class App extends Application {
         AppEventsLogger.activateApp(this);
         LoginManager.getInstance().logOut();
         StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder().permitNetwork().build());
-
+        myFont = Typeface.createFromAsset(getAssets(), "fonts/pen.ttf");
         super.onCreate();
         firstAccess = true;
+        names = new String[3000];
         response = "";
         /*
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);

@@ -133,7 +133,12 @@ public class LoginPop extends Activity {
                                     obj.put("user_id", App.db_user_id);
                                     result = new sendJSON("http://52.78.200.87:3000",
                                             obj.toString(), "application/json").execute().get();
+
+                                    //Update Information in App variables
                                     App.friends = result.getJSONArray("contacts");
+                                    for (int i = 0; i < App.friends.length(); i++) {
+                                        App.names[i] = App.friends.getJSONObject(i).getString("name");
+                                    }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 } catch (InterruptedException e) {
@@ -265,12 +270,11 @@ public class LoginPop extends Activity {
 
     public void sendFBcontacts (JSONObject tag_friend) {
         try {
+            JSONObject obj = new JSONObject();
+            JSONArray contact_arr = new JSONArray();
+            obj.put("type", "ADD_CONTACTS");
+            obj.put("user_id", App.db_user_id);
             while (true) {
-                JSONObject obj = new JSONObject();
-                JSONArray contact_arr = new JSONArray();
-                obj.put("type", "ADD_CONTACTS");
-                obj.put("user_id", App.db_user_id);
-
                 JSONArray friends = tag_friend.getJSONArray("data");
                 for (int i = 0; i < friends.length(); i++) {
                     JSONObject contact = new JSONObject();
@@ -282,10 +286,6 @@ public class LoginPop extends Activity {
                     contact.put("pic", p_pic);
                     contact_arr.put(contact);
                 }
-                obj.put("contacts", contact_arr);
-                JSONObject result = new sendJSON("http://52.78.200.87:3000",
-                        obj.toString(), "application/json").execute().get();
-                Log.v("Sent FB contacts", result.toString());
 
                 // If need to fetch more pages
                 if (tag_friend.getJSONObject("paging").has("next")) {
@@ -293,6 +293,10 @@ public class LoginPop extends Activity {
                     tag_friend = new sendJSON(url, "", "").execute().get();
                 } else {break;}
             }
+            obj.put("contacts", contact_arr);
+            JSONObject result = new sendJSON("http://52.78.200.87:3000",
+                    obj.toString(), "application/json").execute().get();
+            Log.v("Sent FB contacts", result.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
