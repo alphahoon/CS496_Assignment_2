@@ -21,6 +21,7 @@ import android.database.Cursor;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 
 /**
  * Created by q on 2016-12-30.
@@ -29,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 public class App extends Application {
     public static boolean firstAccess;
     public static JSONArray friends;
+    public static HashMap<String, String> friend_map;
     public static String[] names;
     public static String response;
     public static String db_user_id;
@@ -45,6 +47,7 @@ public class App extends Application {
         super.onCreate();
         firstAccess = true;
         names = new String[3000];
+        friend_map =  new HashMap<String, String>();
         response = "";
         /*
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);

@@ -137,8 +137,12 @@ public class LoginPop extends Activity {
                                     //Update Information in App variables
                                     App.friends = result.getJSONArray("contacts");
                                     for (int i = 0; i < App.friends.length(); i++) {
-                                        App.names[i] = App.friends.getJSONObject(i).getString("name");
+                                        JSONObject f = App.friends.getJSONObject(i);
+                                        App.names[i] = f.getString("name");
+                                        App.friend_map.put(f.getString("name"),
+                                                f.getString("friend_id"));
                                     }
+
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 } catch (InterruptedException e) {

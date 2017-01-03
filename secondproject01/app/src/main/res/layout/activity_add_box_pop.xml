@@ -10,119 +10,23 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.cs496.secondproject01.AddBoxPop">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="새로운 추억"
-        android:id="@+id/add_msg"
-        android:textSize="30dp"
-        android:textStyle="bold"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <CheckBox
-        android:text="게임"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox7"
-        android:layout_below="@+id/checkBox6"
-        android:layout_alignRight="@+id/complete"
-        android:layout_alignEnd="@+id/complete" />
-
-    <CheckBox
-        android:text="영화"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox6"
-        android:layout_alignBaseline="@+id/checkBox2"
-        android:layout_alignBottom="@+id/checkBox2"
-        android:layout_alignLeft="@+id/checkBox7"
-        android:layout_alignStart="@+id/checkBox7" />
-
-    <CheckBox
-        android:text="운동"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox5"
-        android:layout_above="@+id/checkBox6"
-        android:layout_alignLeft="@+id/checkBox6"
-        android:layout_alignStart="@+id/checkBox6" />
-
-    <CheckBox
-        android:text="여행"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox8"
-        android:layout_alignLeft="@+id/checkBox5"
-        android:layout_alignStart="@+id/checkBox5"
-        android:layout_below="@+id/checkBox7" />
-
     <CheckBox
         android:text="식사"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox3"
-        android:layout_below="@+id/checkBox4"
-        android:layout_alignLeft="@+id/checkBox4"
-        android:layout_alignStart="@+id/checkBox4" />
+        android:id="@+id/eat_box"
+        android:layout_below="@+id/coffe_box"
+        android:layout_alignLeft="@+id/coffe_box"
+        android:layout_alignStart="@+id/coffe_box" />
 
     <CheckBox
         android:text="커피/차"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/checkBox4"
-        android:layout_below="@+id/checkBox2"
-        android:layout_alignLeft="@+id/checkBox2"
-        android:layout_alignStart="@+id/checkBox2" />
-
-    <CheckBox
-        android:text="공부"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox2"
-
-        android:layout_below="@+id/checkBox"
-        android:layout_alignLeft="@+id/with"
-        android:layout_alignStart="@+id/with" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="함께한 소중한 사람은 누구였나요?"
-        android:layout_marginTop="20dp"
-        android:textSize="14dp"
-        android:id="@+id/with"
-        android:layout_below="@+id/select_photos"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="함께 무슨 활동을 하였나요?"
-        android:layout_marginTop="55dp"
-        android:id="@+id/action"
-        android:textSize="14dp"
-        android:layout_below="@+id/with"
-        android:layout_centerHorizontal="true" />
-
-    <CheckBox
-        android:text="업무"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/checkBox"
-        android:layout_marginTop="15dp"
-        android:layout_below="@+id/action"
-        android:layout_alignLeft="@+id/checkBox2"
-        android:layout_alignStart="@+id/checkBox2" />
-
-    <Button
-        android:text="상자에 추가하기"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/complete"
-        android:layout_marginBottom="10dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:id="@+id/coffe_box"
+        android:layout_below="@+id/study_box"
+        android:layout_alignLeft="@+id/study_box"
+        android:layout_alignStart="@+id/study_box" />
 
     <CalendarView
         android:layout_width="wrap_content"
@@ -134,25 +38,23 @@
         android:layout_marginStart="373dp"
         android:id="@+id/calendarView2" />
 
-    <Button
-        android:text="사진 선택"
+    <CheckBox
+        android:text="게임"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/select_photos"
-        android:layout_marginTop="14dp"
-        android:layout_below="@+id/add_msg"
-        android:layout_alignLeft="@+id/with"
-        android:layout_alignStart="@+id/with" />
+        android:id="@+id/game_box"
+        android:layout_below="@+id/coffe_box"
+        android:layout_alignLeft="@+id/movie_box"
+        android:layout_alignStart="@+id/movie_box" />
 
-    <Button
-        android:text="날짜 선택"
+    <CheckBox
+        android:text="운동"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/button3"
-        android:layout_alignBaseline="@+id/select_photos"
-        android:layout_alignBottom="@+id/select_photos"
-        android:layout_alignRight="@+id/with"
-        android:layout_alignEnd="@+id/with" />
+        android:id="@+id/ex_box"
+        android:layout_above="@+id/movie_box"
+        android:layout_alignLeft="@+id/movie_box"
+        android:layout_alignStart="@+id/movie_box" />
 
     <MultiAutoCompleteTextView
         android:hint="FRIENDS 목록에 있는 친구 이름을 입력하세요 (쉼표로 구분)"
@@ -160,9 +62,118 @@
         android:textSize="10dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
+        android:paddingTop="8dp"
+
         android:id="@+id/with_input"
+        android:completionThreshold="1"
         android:layout_below="@+id/with"
+        android:layout_centerHorizontal="true" />
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="textPersonName"
+        android:hint="앨범 이름"
+        android:textAlignment="center"
+        android:textColorHint="#60ee0000"
+        android:ems="10"
+        android:id="@+id/album_name"
+        android:layout_below="@+id/add_msg"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="함께한 소중한 사람은 누구였나요?"
+        android:layout_marginTop="21dp"
+        android:textSize="14dp"
+        android:id="@+id/with"
+        android:layout_below="@+id/select_date"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="새로운 추억"
+        android:id="@+id/add_msg"
+        android:textSize="30dp"
+        android:textStyle="bold"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <CheckBox
+        android:text="여행"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/travel_box"
+        android:layout_alignRight="@+id/add_msg"
+        android:layout_alignEnd="@+id/add_msg"
+        android:layout_above="@+id/ex_box" />
+
+    <CheckBox
+        android:text="영화"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/movie_box"
+        android:layout_above="@+id/game_box"
+        android:layout_alignLeft="@+id/travel_box"
+        android:layout_alignStart="@+id/travel_box" />
+
+    <CheckBox
+        android:text="공부"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/study_box"
+        android:layout_below="@+id/work_box"
+        android:layout_alignLeft="@+id/add_msg"
+        android:layout_alignStart="@+id/add_msg" />
+
+    <CheckBox
+        android:text="업무"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/work_box"
+        android:layout_marginTop="45dp"
+        android:layout_below="@+id/with_input"
+        android:layout_alignLeft="@+id/coffe_box"
+        android:layout_alignStart="@+id/coffe_box" />
+
+    <Button
+        android:text="사진 선택"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
+        android:textSize="11dp"
+        android:id="@+id/select_photos"
+        android:layout_below="@+id/album_name"
+        android:layout_alignLeft="@+id/add_msg"
+        android:layout_alignStart="@+id/add_msg" />
+
+    <Button
+        android:text="날짜 선택"
+        android:layout_width="70dp"
+        android:layout_height="40dp"
+        android:textSize="11dp"
+        android:id="@+id/select_date"
+        android:layout_below="@+id/album_name"
+        android:layout_alignLeft="@+id/travel_box"
+        android:layout_alignStart="@+id/travel_box" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="함께 무슨 활동을 하였나요?"
+        android:id="@+id/action"
+        android:textSize="15dp"
+        android:layout_above="@+id/travel_box"
+        android:layout_centerHorizontal="true" />
+
+    <Button
+        android:text="상자에 추가하기"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/complete"
+        android:layout_marginTop="11dp"
+        android:layout_below="@+id/eat_box"
         android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

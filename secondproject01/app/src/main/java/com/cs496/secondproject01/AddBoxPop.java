@@ -8,20 +8,27 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.os.Environment;
 import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.TextInputEditText;
+import android.text.InputType;
 import android.util.Base64;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yongbeam.y_photopicker.util.photopicker.PhotoPagerActivity;
 import com.yongbeam.y_photopicker.util.photopicker.PhotoPickerActivity;
 import com.yongbeam.y_photopicker.util.photopicker.utils.YPhotoPickerIntent;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,9 +72,31 @@ public class AddBoxPop extends Activity {
         TextView txt0 = (TextView) findViewById(R.id.add_msg);
         TextView txt1 = (TextView) findViewById(R.id.with);
         TextView txt2 = (TextView) findViewById(R.id.action);
+        CheckBox b_eat = (CheckBox) findViewById(R.id.eat_box);
+        CheckBox b_movie = (CheckBox) findViewById(R.id.movie_box);
+        CheckBox b_coffee = (CheckBox) findViewById(R.id.coffe_box);
+        CheckBox b_travel = (CheckBox) findViewById(R.id.travel_box);
+        CheckBox b_game = (CheckBox) findViewById(R.id.game_box);
+        CheckBox b_work = (CheckBox) findViewById(R.id.work_box);
+        CheckBox b_study = (CheckBox) findViewById(R.id.study_box);
+        CheckBox b_ex = (CheckBox) findViewById(R.id.ex_box);
+        Button b_complete = (Button) findViewById(R.id.complete);
+        Button b_photo = (Button) findViewById(R.id.select_photos);
+        Button b_date = (Button) findViewById(R.id.select_date);
         txt0.setTypeface(App.myFont);
         txt1.setTypeface(App.myFont);
         txt2.setTypeface(App.myFont);
+        b_eat.setTypeface(App.myFont);
+        b_movie.setTypeface(App.myFont);
+        b_coffee.setTypeface(App.myFont);
+        b_travel.setTypeface(App.myFont);
+        b_game.setTypeface(App.myFont);
+        b_work.setTypeface(App.myFont);
+        b_study.setTypeface(App.myFont);
+        b_ex.setTypeface(App.myFont);
+        b_complete.setTypeface(App.myFont);
+        b_photo.setTypeface(App.myFont);
+        b_date.setTypeface(App.myFont);
 
         RelativeLayout bg = (RelativeLayout) findViewById(R.id.activity_add_box_pop);
         Random rand = new Random();
@@ -90,11 +119,32 @@ public class AddBoxPop extends Activity {
 
         // Select With Friends
         String[] names = App.names;
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+        /*ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_dropdown_item_1line, names);
         MultiAutoCompleteTextView with_input = (MultiAutoCompleteTextView) findViewById(R.id.with_input);
-        with_input.setAdapter(adapter);
         with_input.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+        with_input.setInputType(InputType.TYPE_CLASS_TEXT);
+        with_input.setThreshold(1);
+        with_input.setAdapter(adapter);*/
+
+        final MultiAutoCompleteTextView mt=(MultiAutoCompleteTextView)
+                findViewById(R.id.with_input);
+        mt.setTokenizer(new MultiAutoCompleteTextView.CommaTokenizer());
+
+        ArrayAdapter<String> adp=new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line,names);
+
+        mt.setThreshold(1);
+        mt.setAdapter(adp);
+/*
+        mt.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event)
+            {
+                mt.showDropDown();
+                return true;
+            }
+        });*/
 
         //"상자에 추가하기" button
         Button complete = (Button) findViewById(R.id.complete);
@@ -106,7 +156,7 @@ public class AddBoxPop extends Activity {
         getWindowManager().getDefaultDisplay().getMetrics(dm);
         int width = dm.widthPixels;
         int height = dm.heightPixels;
-        getWindow().setLayout((int) (width * 0.8), (int) (height * 0.7));
+        getWindow().setLayout((int) (width * 0.8), (int) (height * 0.72));
     }
 
     //============================================================================================//
@@ -137,6 +187,9 @@ public class AddBoxPop extends Activity {
     //"상자에 추가하기" 버튼 눌렀을 때
     Button.OnClickListener completeOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
+            JSONArray photos = new JSONArray();
+
+            //선택한 사진 DB에 보내고 id 가져오기
             for (int i = 0; i < selectedPhotos.size(); i++) {
                 //File sd = Environment.getExternalStorageDirectory();
                 String filePath = selectedPhotos.get(i);
@@ -164,7 +217,8 @@ public class AddBoxPop extends Activity {
                             req.toString(), "application/json").execute().get();
                     //Log.v("Sent Image", result.toString());
                     Log.v("db_user_id", App.db_user_id);
-                    selectedPhotos.set(i,result.getString("img_id"));
+                    photos.put(result.getString("img_id"));
+                    //selectedPhotos.set(i,result.getString("img_id"));
                     Log.v("photo ids", selectedPhotos.toString());
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -173,14 +227,74 @@ public class AddBoxPop extends Activity {
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
-
-
                 //bitmap = Bitmap.createScaledBitmap(bitmap,parent.getWidth(),parent.getHeight(),true);
+            }
+
+            //앨범 이름 받아오기
+            EditText album_name = (EditText) findViewById(R.id.album_name);
+            String album = album_name.getText().toString();
+
+            //친구 태그 가져오기
+            MultiAutoCompleteTextView with_input = (MultiAutoCompleteTextView) findViewById(R.id.with_input);
+            String s = with_input.getText().toString();
+            String[] friendNames = s.split(",");
+            JSONArray friend_ids = new JSONArray();
+            for (int i = 0; i < friendNames.length ; i++)
+                friend_ids.put(App.friend_map.get(friendNames[i].trim()));
+
+
+            //활동 태그 가져오기
+            CheckBox b_eat = (CheckBox) findViewById(R.id.eat_box);
+            CheckBox b_movie = (CheckBox) findViewById(R.id.movie_box);
+            CheckBox b_coffee = (CheckBox) findViewById(R.id.coffe_box);
+            CheckBox b_travel = (CheckBox) findViewById(R.id.travel_box);
+            CheckBox b_game = (CheckBox) findViewById(R.id.game_box);
+            CheckBox b_work = (CheckBox) findViewById(R.id.work_box);
+            CheckBox b_study = (CheckBox) findViewById(R.id.study_box);
+            CheckBox b_ex = (CheckBox) findViewById(R.id.ex_box);
+            JSONObject activity = new JSONObject();
+            try {
+                activity.put("work",bool2int(b_work.isChecked()));
+                activity.put("study",bool2int(b_study.isChecked()));
+                activity.put("food",bool2int(b_eat.isChecked()));
+                activity.put("cafe",bool2int(b_coffee.isChecked()));
+                activity.put("sports",bool2int(b_ex.isChecked()));
+                activity.put("game",bool2int(b_game.isChecked()));
+                activity.put("travel",bool2int(b_travel.isChecked()));
+                //activity.put("movie",bool2int(b_movie.isChecked()));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            //Create Album Request
+            try {
+                JSONObject req = new JSONObject();
+                req.put("type", "CREATE_ALBUM");
+                req.put("user_id",App.db_user_id);
+                req.put("album_name",album);
+                req.put("date","2017-01-01");
+                req.put("activity",activity);
+                req.put("friend_id_list",friend_ids);
+                req.put("img_id_list",photos);
+                JSONObject result = new sendJSON("http://52.78.200.87:3000",
+                        req.toString(), "application/json").execute().get();
+                Log.v("create album", result.toString());
+                //Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
             }
         }
     };
 
 
+    String bool2int(Boolean bool) {
+        String s = (bool) ? "1" : "0";
+        return s;
+    }
     //============================================================================================//
     // AsyncTask to send JSON to our MongoDB
     private class sendJSON extends AsyncTask<Void, Void, JSONObject> {
