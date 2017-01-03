@@ -277,6 +277,7 @@ router.post('/', function(req, res, next) {
         || !json.activity.food   || (json.activity.food != '0'   && json.activity.food != '1')
         || !json.activity.cafe   || (json.activity.cafe != '0'   && json.activity.cafe != '1')
         || !json.activity.sports || (json.activity.sports != '0' && json.activity.sports != '1')
+        || !json.activity.movie || (json.activity.movie != '0' && json.activity.movie != '1')
         || !json.activity.game   || (json.activity.game != '0'   && json.activity.game != '1')
         || !json.activity.travel || (json.activity.travel != '0' && json.activity.travel != '1')) {
         res.json({result:'failed', description:'activity list is incomplete'});
@@ -323,7 +324,7 @@ router.post('/', function(req, res, next) {
               if (json.friend_id_list[i] == contacts[j].friend_id) {
                 num_friends_match++;
                 var contact_obj = contacts[j];
-                contact_obj.count = 1;
+                contact_obj.count = "1";
                 friends = friends.concat(contact_obj);
               }
             }
@@ -371,6 +372,7 @@ router.post('/', function(req, res, next) {
                     "food": "0",
                     "cafe": "0",
                     "sports": "0",
+                    "movie": "0",
                     "game": "0",
                     "travel": "0"
                   };
@@ -385,6 +387,7 @@ router.post('/', function(req, res, next) {
                       new_stat.activity.food = (Number(new_stat.activity.food) + Number(json.activity.food)).toString();
                       new_stat.activity.cafe = (Number(new_stat.activity.cafe) + Number(json.activity.cafe)).toString();
                       new_stat.activity.sports = (Number(new_stat.activity.sports) + Number(json.activity.sports)).toString();
+                      new_stat.activity.movie = (Number(new_stat.activity.movie) + Number(json.activity.movie)).toString();
                       new_stat.activity.game = (Number(new_stat.activity.game) + Number(json.activity.game)).toString();
                       new_stat.activity.travel = (Number(new_stat.activity.travel) + Number(json.activity.travel)).toString();
 
@@ -408,6 +411,7 @@ router.post('/', function(req, res, next) {
                   stat.activity.food = (Number(stat.activity.food) + Number(json.activity.food)).toString();
                   stat.activity.cafe = (Number(stat.activity.cafe) + Number(json.activity.cafe)).toString();
                   stat.activity.sports = (Number(stat.activity.sports) + Number(json.activity.sports)).toString();
+                  stat.activity.movie = (Number(stat.activity.movie) + Number(json.activity.movie)).toString();
                   stat.activity.game = (Number(stat.activity.game) + Number(json.activity.game)).toString();
                   stat.activity.travel = (Number(stat.activity.travel) + Number(json.activity.travel)).toString()
 
@@ -438,6 +442,39 @@ router.post('/', function(req, res, next) {
               });
             });
           });
+        });
+      });
+      break;
+
+    case "GET_ALBUM_LIST":
+      if (!json.user_id) {
+        res.json({result:'failed', description:'user_id must be provided'});
+        return;
+      }
+      if (!isValidId(json.user_id)) {
+        res.json({result:'failed', description:'invalid user_id format'});
+        return;
+      }
+      db_users.find({_id:json.user_id}, {}, function(e, users) {
+        if (e) return next(e);
+        if (isEmptyObject(users)) {
+          res.json({result:'failed', description:'user not registered'});
+          return;
+        }
+        var user = users[0];
+
+        db_albums.find({user_id:user._id.toString()}, {}, function(e, albums) {
+          if (e) return next(e);
+          if (isEmptyObject(albums)) {
+            res.json({result:'failed', description:'no album found'});
+            return;
+          }
+          var album_id_list = [];
+          for (var i in albums) {
+            album_id_list = album_id_list.concat(albums[i]._id.toString());
+          }
+          res.json({result:'success', album_id_list:album_id_list});
+          return;
         });
       });
       break;
@@ -548,6 +585,7 @@ router.post('/', function(req, res, next) {
         || !json.activity.food   || (json.activity.food != '0'   && json.activity.food != '1')
         || !json.activity.cafe   || (json.activity.cafe != '0'   && json.activity.cafe != '1')
         || !json.activity.sports || (json.activity.sports != '0' && json.activity.sports != '1')
+        || !json.activity.movie  || (json.activity.movie != '0' && json.activity.movie != '1')
         || !json.activity.game   || (json.activity.game != '0'   && json.activity.game != '1')
         || !json.activity.travel || (json.activity.travel != '0' && json.activity.travel != '1')) {
         res.json({result:'failed', description:'activity list is incomplete'});
@@ -594,7 +632,7 @@ router.post('/', function(req, res, next) {
               if (json.friend_id_list[i] == contacts[j].friend_id) {
                 num_friends_match++;
                 var contact_obj = contacts[j];
-                contact_obj.count = 1;
+                contact_obj.count = "1";
                 friends = friends.concat(contact_obj);
               }
             }
@@ -641,6 +679,7 @@ router.post('/', function(req, res, next) {
               var delta_food = (Number(json.activity.food) - Number(album.activity.food)).toString();
               var delta_cafe = (Number(json.activity.cafe) - Number(album.activity.cafe)).toString();
               var delta_sports = (Number(json.activity.sports) - Number(album.activity.sports)).toString();
+              var delta_movie = (Number(json.activity.movie) - Number(album.activity.movie)).toString();
               var delta_game = (Number(json.activity.game) - Number(album.activity.game)).toString();
               var delta_travel = (Number(json.activity.travel) - Number(album.activity.travel)).toString();
 
@@ -680,6 +719,7 @@ router.post('/', function(req, res, next) {
                     stat.activity.food = (Number(stat.activity.food) + Number(delta_food)).toString();
                     stat.activity.cafe = (Number(stat.activity.cafe) + Number(delta_cafe)).toString();
                     stat.activity.sports = (Number(stat.activity.sports) + Number(delta_sports)).toString();
+                    stat.activity.movie = (Number(stat.activity.movie) + Number(delta_movie)).toString();
                     stat.activity.game = (Number(stat.activity.game) + Number(delta_game)).toString();
                     stat.activity.travel = (Number(stat.activity.travel) + Number(delta_travel)).toString();
 
@@ -754,9 +794,10 @@ router.post('/', function(req, res, next) {
           var dec_food = album.activity.food;
           var dec_cafe = album.activity.cafe;
           var dec_sports = album.activity.sports;
+          var dec_movie = album.activity.movie;
           var dec_game = album.activity.game;
           var dec_travel = album.activity.travel;
-          var dec_friend_id_list = album.activity.friend_id_list;
+          var dec_friend_id_list = album.friend_id_list;
 
           db_albums.remove({user_id:user._id.toString(), _id:json.album_id}, function(e, result) {
             if (e) return next(e);
@@ -775,6 +816,7 @@ router.post('/', function(req, res, next) {
               stat.activity.food = (Number(stat.activity.food) - Number(dec_food)).toString();
               stat.activity.cafe = (Number(stat.activity.cafe) - Number(dec_cafe)).toString();
               stat.activity.sports = (Number(stat.activity.sports) - Number(dec_sports)).toString();
+              stat.activity.movie = (Number(stat.activity.movie) - Number(dec_movie)).toString();
               stat.activity.game = (Number(stat.activity.game) - Number(dec_game)).toString();
               stat.activity.travel = (Number(stat.activity.travel) - Number(dec_travel)).toString();
 
@@ -783,12 +825,12 @@ router.post('/', function(req, res, next) {
                 for (var j in stat.friends) {
                   if (dec_friend_id_list[i] == stat.friends[j].friend_id) {
                     stat.friends[j].count = (Number(stat.friends[j].count) - 1).toString();
-                      if (stat.friends[j].count == 0)
-                        stat.friends.splice(j, 1);
+                    if (Number(stat.friends[j].count) == 0) {
+                      stat.friends.splice(j, 1);
+                    }
                   }
                 }
               }
-
               db_stats.update({user_id:user._id.toString()},
                 {user_id:stat.user_id,
                   activity:stat.activity,
