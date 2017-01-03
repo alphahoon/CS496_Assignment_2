@@ -1,5 +1,6 @@
 package com.cs496.secondproject01;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.MultiAutoCompleteTextView;
 import android.widget.RelativeLayout;
@@ -46,6 +48,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -60,6 +64,7 @@ public class AddBoxPop extends Activity {
     public final static int REQUEST_CODE = 1;
     private Button getphoto;
     public static ArrayList<String> selectedPhotos = new ArrayList<>();
+    private String date;
 
 
 
@@ -101,6 +106,21 @@ public class AddBoxPop extends Activity {
         RelativeLayout bg = (RelativeLayout) findViewById(R.id.activity_add_box_pop);
         Random rand = new Random();
         //bg.setBackgroundResource(cards.get(rand.nextInt(8)));
+
+        // DatePicker setup
+        Button getDate = (Button) findViewById(R.id.select_date);
+        GregorianCalendar calendar = new GregorianCalendar();
+        final int year = calendar.get(Calendar.YEAR);
+        final int month = calendar.get(Calendar.MONTH);
+        final int day = calendar.get(Calendar.DAY_OF_MONTH);
+        getDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DatePickerDialog dialog = new DatePickerDialog(AddBoxPop.this,
+                        listener, year,month,day);
+                dialog.show();
+            }
+        });
 
         // Select photos from the gallery
         getphoto = (Button) findViewById(R.id.select_photos);
@@ -182,6 +202,17 @@ public class AddBoxPop extends Activity {
         }
     }
 
+    private DatePickerDialog.OnDateSetListener listener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+            String msg = year + "-" + monthOfYear+1 + "-" + dayOfMonth;
+            if (dayOfMonth < 10)
+                msg = year + "-" + monthOfYear+1 + "-0" + dayOfMonth;
+            date = msg;
+            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+        }
+    };
+
     //============================================================================================//
 
     //"상자에 추가하기" 버튼 눌렀을 때
@@ -230,6 +261,12 @@ public class AddBoxPop extends Activity {
                 //bitmap = Bitmap.createScaledBitmap(bitmap,parent.getWidth(),parent.getHeight(),true);
             }
 
+
+            //날짜 받아오기
+            Button getDate = (Button) findViewById(R.id.select_date);
+
+
+
             //앨범 이름 받아오기
             EditText album_name = (EditText) findViewById(R.id.album_name);
             String album = album_name.getText().toString();
@@ -272,14 +309,19 @@ public class AddBoxPop extends Activity {
                 req.put("type", "CREATE_ALBUM");
                 req.put("user_id",App.db_user_id);
                 req.put("album_name",album);
-                req.put("date","2017-01-01");
+                req.put("date",date);
                 req.put("activity",activity);
                 req.put("friend_id_list",friend_ids);
                 req.put("img_id_list",photos);
                 JSONObject result = new sendJSON("http://52.78.200.87:3000",
                         req.toString(), "application/json").execute().get();
                 Log.v("create album", result.toString());
-                //Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+                if (result.getString("result") == "success") {
+                    Toast.makeText(getApplicationContext(), "추가 완료:)", Toast.LENGTH_SHORT).show();
+                    onCreate(null);
+                } else {
+                    Toast.makeText(getApplicationContext(), "추가 실패:(", Toast.LENGTH_SHORT).show();
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch (InterruptedException e) {
