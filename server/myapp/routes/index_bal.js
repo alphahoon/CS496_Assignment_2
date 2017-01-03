@@ -110,19 +110,22 @@ router.post('/', function(req, res, next) {
               {user_id:contact.user_id,
                name:contact.name,
                email:contact.email,
-               contacts:contact.contacts.concat(json.contacts).sort(function(a, b) {
-                  var textA = a.name.toUpperCase();
-                  var textB = b.name.toUpperCase();
-                  return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;
-               })
-             },
+               contacts:contact.contacts.concat(json.contacts)},
               function(e, updated_contact) {
                 if (e) return next(e);
                 db_contacts.find({user_id:user._id.toString()}, {}, function(e, contacts) {
                   var contact = contacts[0];
                   var num = contact.contacts.length;
-                  res.json({result:'success', description:'added contacts', contacts_num:num});
-                  return;
+                  db_contacts.update({user_id:user._id.toString()},
+                  {user_id:contact.user_id,
+                    name: contact.name,
+                    email: contact.email,
+                    contacts: contact.contacts.sort({name : 1})},
+                  function(e, contacts) {
+                    if (e) return next(e);
+                    res.json({result:'success', description:'added contacts', contacts_num:num});
+                    return;
+                  });
                 });
             });
           }
