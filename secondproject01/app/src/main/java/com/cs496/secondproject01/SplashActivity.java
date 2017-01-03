@@ -1,5 +1,6 @@
 package com.cs496.secondproject01;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Handler;
@@ -16,8 +17,12 @@ public class SplashActivity extends AppCompatActivity {
         //TextView msg = (TextView) findViewById(R.id.splash_msg);
         //Typeface typeFace= Typeface.createFromAsset(getAssets(), "fonts/pen.ttf");
         //msg.setTypeface(typeFace);
-
         setContentView(R.layout.activity_splash);
+        TextView txt = (TextView) findViewById(R.id.splash_msg);
+        //Typeface font = Typeface.createFromAsset(getAssets(), "fonts/pen.ttf");
+        txt.setTypeface(App.myFont);
+
+
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
